@@ -14,11 +14,57 @@ namespace Hosting
         {
             //HostByCode();
 
-            using(ServiceHost host=new ServiceHost(typeof(CalculatorService)))
+           // HostCalculatorServiceViaCode();
+
+            HostCalculatorSerivceViaConfiguration();
+
+            //using (ServiceHost host = new ServiceHost(typeof(CalculatorService)))
+            //{
+            //    host.Opened += host_Opened;
+            //    host.Open();
+            //    Console.ReadLine();
+            //}
+        }
+
+        private static void HostCalculatorSerivceViaConfiguration()
+        {
+            using (ServiceHost host = new ServiceHost(typeof(CalculatorService)))
             {
-                host.Opened+=host_Opened;
+                host.Opened += host_Opened;
                 host.Open();
                 Console.ReadLine();
+            }
+
+        }
+
+        private static void HostCalculatorServiceViaCode()
+        {
+            Uri httpbaseAddress = new Uri("http://localhost:8888/CalculatorService");
+            Uri tcpbaseAddress = new Uri("net.tcp://localhost:9998/CalculatorService");
+            using(ServiceHost host=new ServiceHost(typeof(CalculatorService),httpbaseAddress,tcpbaseAddress))
+            {
+                BasicHttpBinding httpBinding=new BasicHttpBinding();
+                NetTcpBinding tcpBinding=new NetTcpBinding();
+                host.AddServiceEndpoint(typeof(ICalculator),httpBinding,String.Empty);
+                host.AddServiceEndpoint(typeof(ICalculator),tcpBinding,string.Empty);
+                ServiceMetadataBehavior behavior=host.Description.Behaviors.Find<ServiceMetadataBehavior>();
+                {
+                    if(behavior==null)
+                    {
+                        behavior=new ServiceMetadataBehavior();
+                        behavior.HttpGetEnabled=true;
+                        host.Description.Behaviors.Add(behavior);
+
+                    }
+                    else
+                    {
+                        behavior.HttpGetEnabled=true;
+                    }
+                }
+                 host.Opened += host_Opened;
+                host.Open();
+                Console.ReadLine();
+
             }
         }
 
